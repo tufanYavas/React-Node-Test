@@ -5,12 +5,14 @@ import MultiLeadModel from 'components/commonTableModel/MultiLeadModel';
 import Spinner from 'components/spinner/Spinner';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { LiaMousePointerSolid } from 'react-icons/lia';
-import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { MeetingSchema } from 'schema';
-import { getApi, postApi } from 'services/api';
+import { postApi } from 'services/api';
+import { fetchContactData } from '../../../../redux/slices/contactSlice';
+import { fetchLeadData } from '../../../../redux/slices/leadSlice';
 
 const AddMeeting = (props) => {
     const { onClose, isOpen, setAction, from, fetchData, view } = props
@@ -20,12 +22,9 @@ const AddMeeting = (props) => {
     const [contactModelOpen, setContactModel] = useState(false);
     const [leadModelOpen, setLeadModel] = useState(false);
     const todayTime = new Date().toISOString().split('.')[0];
-    const leadData = useSelector((state) => state?.leadData?.data);
-
+    const dispatch = useDispatch();
 
     const user = JSON.parse(localStorage.getItem('user'))
-
-    const contactList = useSelector((state) => state?.contactData?.data)
 
 
     const initialValues = {
@@ -43,22 +42,73 @@ const AddMeeting = (props) => {
         initialValues: initialValues,
         validationSchema: MeetingSchema,
         onSubmit: (values, { resetForm }) => {
-            
+            AddData()
         },
     });
     const { errors, touched, values, handleBlur, handleChange, handleSubmit, setFieldValue } = formik
 
     const AddData = async () => {
-
+        try {
+            setIsLoding(true);
+            let response = await postApi('api/meeting', values);
+            if (response.status === 200) {
+                toast.success("Meeting added successfully");
+                if (fetchData) {
+                    fetchData();
+                }
+                onClose(false);
+                formik.resetForm();
+                if (setAction) {
+                    setAction(pre => !pre);
+                }
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Failed to add meeting");
+        } finally {
+            setIsLoding(false);
+        }
     };
 
-    const fetchAllData = async () => {
-        
-    }
+    const fetchAllData = useCallback(async () => {
+        if (values.related === "Contact") {
+            try {
+                setIsLoding(true)
+                const result = await dispatch(fetchContactData())
+
+                if (result.payload) {
+                    setContactData(result?.payload);
+                } else {
+                    toast.error("Failed to fetch data", "error");
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsLoding(false)
+            }
+        } else if (values.related === "Lead") {
+            try {
+                setIsLoding(true)
+                const result = await dispatch(fetchLeadData())
+
+                if (result.payload) {
+                    setLeadData(result?.payload);
+                } else {
+                    toast.error("Failed to fetch data", "error");
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsLoding(false)
+            }
+        }
+    }, [dispatch, values.related])
 
     useEffect(() => {
-
-    }, [props.id, values.related])
+        if (values.related) {
+            fetchAllData();
+        }
+    }, [props.id, values.related, fetchAllData]);
 
     const extractLabels = (selectedItems) => {
         return selectedItems.map((item) => item._id);
@@ -67,7 +117,7 @@ const AddMeeting = (props) => {
     const countriesWithEmailAsLabel = (values.related === "Contact" ? contactdata : leaddata)?.map((item) => ({
         ...item,
         value: item._id,
-        label: values.related === "Contact" ? `${item.firstName} ${item.lastName}` : item.leadName,
+        label: values.related === "Contact" ? item.fullName : item.leadName,
     }));
 
     return (

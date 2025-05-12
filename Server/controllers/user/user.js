@@ -171,7 +171,7 @@ const login = async (req, res) => {
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY || 'secret_key', { expiresIn: '1d' });
 
         // Remove sensitive data from the user object
-        const { password: _, emailsent, textsent, _id, ...userData } = user._doc;
+        const { password: _, emailsent, textsent, ...userData } = user._doc;
 
         res.status(200).setHeader('Authorization', `Bearer${token}`).json({ token: token, user: userData });
     } catch (error) {
