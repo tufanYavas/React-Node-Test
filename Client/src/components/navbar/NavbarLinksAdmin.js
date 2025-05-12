@@ -24,7 +24,7 @@ import { FaEthereum } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { getApi } from "services/api";
 import { toast } from "react-toastify";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { ThemeEditor } from "./ThemeEditor";
 import FixedPlugin from "components/fixedPlugin/FixedPlugin";
 import { useDispatch, useSelector } from "react-redux";

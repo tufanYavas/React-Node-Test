@@ -13,11 +13,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Provider } from 'react-redux';
 import { store, persistor } from './redux/store';
 import { PersistGate } from 'redux-persist/integration/react';
+import { useSelector } from "react-redux";
 
 function App() {
 	const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
-	const user = JSON.parse(localStorage.getItem("user"))
+	const user = useSelector(state => state.user.user)
 	useNavigate()
 
 	return (
