@@ -556,18 +556,28 @@ const changeModuleName = async (req, res) => {
                 await mongoose.model(newModuleName, newModuleSchema, newModuleName);
                 delete mongoose.models[oldModuleName];
 
-                async function checkModuleExistence(moduleName) {
-                    let exists = false;
-                    while (!exists) {
-                        if (mongoose.models[moduleName]) {
-                            exists = true;
-                        } else {
-                            console.log(`Module ${moduleName} does not exist, waiting...`);
-                            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second
-                        }
+                let exists = false;
+                let retryCount = 0;
+                const maxRetries = 5;
+                
+                while (!exists && retryCount < maxRetries) {
+                    if (mongoose.models[newModuleName]) {
+                        exists = true;
+                    } else {
+                        console.log(`Module ${newModuleName} does not exist, retry ${retryCount + 1} of ${maxRetries}...`);
+                        retryCount++;
+                        
+                        await new Promise(resolve => {
+                            process.nextTick(() => {
+                                setTimeout(resolve, 1000, null);
+                            });
+                        });
                     }
                 }
-                await checkModuleExistence(newModuleName);
+                
+                if (!exists) {
+                    console.log(`Module ${newModuleName} could not be found after ${maxRetries} attempts.`);
+                }
 
             } else {
                 console.log(`Module ${oldModuleName} does not exist`)

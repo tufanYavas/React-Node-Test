@@ -1,9 +1,6 @@
-import { Button, Grid, GridItem, Flex, IconButton, Text, Menu, MenuButton, MenuDivider, MenuItem, MenuList, useDisclosure, Input, FormLabel } from '@chakra-ui/react'
-import { AddIcon, ChevronDownIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { Button, Grid, GridItem, Flex, Text, Input } from '@chakra-ui/react'
 import React from 'react'
-import moment from 'moment'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { BiLink } from 'react-icons/bi'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useRef } from 'react'
 import { useState } from 'react'
 import { getApi } from 'services/api'
@@ -11,9 +8,7 @@ import Card from 'components/card/Card'
 import { IoIosArrowBack } from "react-icons/io";
 import { HasAccess } from '../../../redux/accessUtils';
 import { HSeparator } from 'components/separator/Separator';
-import CommonDeleteModel from 'components/commonDeleteModel';
-import { deleteManyApi, } from 'services/api';
-import { EmailEditor } from 'react-email-editor';
+import EmailEditor from 'react-email-editor';
 import { toast } from 'react-toastify';
 import { postApi } from 'services/api';
 import { putApi } from 'services/api';

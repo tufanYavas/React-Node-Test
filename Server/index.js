@@ -8,9 +8,6 @@ const cors = require('cors');
 const port = 5001
 require('dotenv').config()
 
-const fs = require('fs');
-const path = require('path');
-
 //Setup Express App
 const app = express();
 // Middleware

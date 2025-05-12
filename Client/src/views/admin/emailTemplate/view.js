@@ -13,7 +13,7 @@ import { HasAccess } from '../../../redux/accessUtils';
 import { HSeparator } from 'components/separator/Separator';
 import CommonDeleteModel from 'components/commonDeleteModel';
 import { deleteManyApi, } from 'services/api';
-import { EmailEditor } from 'react-email-editor';
+import EmailEditor from 'react-email-editor';
 import { toast } from 'react-toastify';
 import { postApi } from 'services/api';
 import { putApi } from 'services/api';

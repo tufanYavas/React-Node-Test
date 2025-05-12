@@ -168,9 +168,12 @@ const login = async (req, res) => {
             return;
         }
         // Create a JWT token
-        const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1d' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY || 'secret_key', { expiresIn: '1d' });
 
-        res.status(200).setHeader('Authorization', `Bearer${token}`).json({ token: token, user });
+        // Remove sensitive data from the user object
+        const { password: _, emailsent, textsent, _id, ...userData } = user._doc;
+
+        res.status(200).setHeader('Authorization', `Bearer${token}`).json({ token: token, user: userData });
     } catch (error) {
         res.status(500).json({ error: 'An error occurred' });
     }

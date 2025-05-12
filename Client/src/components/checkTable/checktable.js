@@ -5,7 +5,6 @@ import { BsColumnsGap } from "react-icons/bs";
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
 import { SearchIcon, DeleteIcon, AddIcon } from "@chakra-ui/icons";
 import { useGlobalFilter, usePagination, useSortBy, useTable } from 'react-table';
-import * as XLSX from "xlsx";
 import Card from 'components/card/Card';
 import CountUpComponent from 'components/countUpComponent/countUpComponent';
 import Pagination from 'components/pagination/Pagination';
@@ -16,6 +15,7 @@ import DataNotFound from "../notFoundData";
 import moment from 'moment';
 import { useSelector, useDispatch } from 'react-redux';
 import { getSearchData, setGetTagValues, setSearchValue } from '../../redux/slices/advanceSearchSlice'
+import ExcelJS from 'exceljs';
 
 const CommonCheckTable = (props) => {
     const { isLoding, title, columnData, size, dataColumn, setSearchedDataOut, state, allData, ManageGrid, deleteMany, tableCustomFields, access, selectedColumns, setSelectedColumns, onOpen, setDelete, selectedValues, setSelectedValues, setIsImport, checkBox, AdvanceSearch, searchDisplay, setSearchDisplay, BackButton, searchboxOutside, setGetTagValuesOutside, setSearchboxOutside, selectType, customSearch } = props;
@@ -254,18 +254,48 @@ const CommonCheckTable = (props) => {
         }
     };
 
-    const convertJsonToCsvOrExcel = (jsonArray, csvColumns, fileName, extension) => {
+    const convertJsonToCsvOrExcel = async (jsonArray, csvColumns, fileName, extension) => {
         const csvHeader = csvColumns?.map((col) => col?.Header);
 
-        const csvContent = [
-            csvHeader,
-            ...jsonArray?.map((row) => csvColumns?.map((col) => row[col?.accessor]))
-        ];
-
-        const ws = XLSX.utils.aoa_to_sheet(csvContent);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Sheet 1');
-        XLSX.writeFile(wb, `${fileName}.${extension}`);    // .csv, .xlsx
+        if (extension === 'csv') {
+            // CSV için basit dönüşüm
+            const csvContent = [
+                csvHeader,
+                ...jsonArray?.map((row) => csvColumns?.map((col) => row[col?.accessor]))
+            ].map(row => row.join(',')).join('\n');
+            
+            // CSV dosyasını indir
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', `${fileName}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else if (extension === 'xlsx') {
+            // Excel için exceljs kullan
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Sheet 1');
+            
+            // Başlık satırını ekle
+            worksheet.addRow(csvHeader);
+            
+            // Veri satırlarını ekle
+            jsonArray?.forEach(row => {
+                const rowData = csvColumns?.map((col) => row[col?.accessor]);
+                worksheet.addRow(rowData);
+            });
+            
+            // Excel dosyasını indir
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', `${fileName}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
         setSelectedValues([])
     };
 
